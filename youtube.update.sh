@@ -27,7 +27,7 @@ forceIPv4="123.456.789.999"
  
 piLogs="/var/log/pihole.log"
 
-#user pihole v5 custom list ( "local dns records" in UI )
+#use pihole v5 custom list ( "local dns records" in UI )
 ytHosts="/etc/pihole/custom.list"
  
 dnsmasqFile="/etc/dnsmasq.d/99-youtube.grublets.conf" #needed with changed list?
