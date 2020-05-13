@@ -26,7 +26,9 @@ forceIPv4="123.456.789.999"
 # nothing below here should need changing, except logging (line #51)
  
 piLogs="/var/log/pihole.log"
-ytHosts="/etc/hosts.youtube"
+
+#user pihole v5 custom list ( "local dns records" in UI )
+ytHosts="/etc/pihole/custom.list"
  
 dnsmasqFile="/etc/dnsmasq.d/99-youtube.grublets.conf"
  
@@ -39,8 +41,9 @@ if [ ! -f $dnsmasqFile ]; then
 fi
  
 ytEntries=$(wc -l $ytHosts)
- 
-for i in $(zgrep -e "reply.*-.*\.googlevideo.*\..*\..*\..*" $piLogs | awk '{ print $6 }')
+
+#changed regex
+for i in $(zgrep -e "r\d.*\.googlevideo\.com" $piLogs | awk '{ print $6 }')
 do
    if [ $(grep -c "$i" $ytHosts) == 0 ]; then 
       # Add line to ytHosts
