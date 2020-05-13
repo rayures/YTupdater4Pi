@@ -53,7 +53,7 @@ done
  
 if [ "$ytEntries" != "$(wc -l $ytHosts)" ]; then
 #	 logger "youtube.update.sh: File updated to $(wc -l $ytHosts)" # uncomment if needed
-   /usr/local/bin/pihole restartdns reload
+   /usr/local/bin/pihole restartdns reload 
 fi
  
 exit
