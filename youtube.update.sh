@@ -43,7 +43,7 @@ fi
 ytEntries=$(wc -l $ytHosts)
 
 #changed regex
-for i in $(zgrep -e "r\d.*\.googlevideo\.com" $piLogs | awk '{ print $6 }')
+for i in $(zgrep -e "r\d(\.sn|---sn).*\.googlevideo\.com" $piLogs | awk '{ print $6 }')
 do
    if [ $(grep -c "$i" $ytHosts) == 0 ]; then 
       # Add line to ytHosts
