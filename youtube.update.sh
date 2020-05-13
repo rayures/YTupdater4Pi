@@ -30,7 +30,7 @@ piLogs="/var/log/pihole.log"
 #user pihole v5 custom list ( "local dns records" in UI )
 ytHosts="/etc/pihole/custom.list"
  
-dnsmasqFile="/etc/dnsmasq.d/99-youtube.grublets.conf"
+dnsmasqFile="/etc/dnsmasq.d/99-youtube.grublets.conf" #needed with changed list?
  
 if [ ! -f $dnsmasqFile ]; then
     echo "addn-hosts=$ytHosts" > $dnsmasqFile
@@ -52,8 +52,9 @@ do
 done
  
 if [ "$ytEntries" != "$(wc -l $ytHosts)" ]; then
+    /usr/local/bin/pihole restartdns reload-lists
+	   /usr/local/bin/pihole restartdns reload
 #	 logger "youtube.update.sh: File updated to $(wc -l $ytHosts)" # uncomment if needed
-   /usr/local/bin/pihole restartdns reload 
 fi
  
 exit
