@@ -19,31 +19,56 @@
 # You can cron this for auto-updating of the host file.
 # Mine fires every minute:
 # * * * * * /home/grub/bin/youtube.update.sh 2>&1
+
  
 #edit this to a real ip from ***.googlevideo.com
 forceIPv4="123.456.789.999"
  
 # nothing below here should need changing, except logging (line #51)
  
-piLogs="/var/log/pihole.log"
-
 #use pihole v5 custom list ( "local dns records" in UI )
 ytHosts="/etc/pihole/custom.list"
+
+piLogs="/var/log/pihole.log"
  
-dnsmasqFile="/etc/dnsmasq.d/99-youtube.grublets.conf" #needed with changed list?
- 
-if [ ! -f $dnsmasqFile ]; then
-    echo "addn-hosts=$ytHosts" > $dnsmasqFile
-    touch $ytHosts
-    piLogs="$piLogs*" # preload with results from all logs
-    echo "Setup complete! Execute 'pihole restartdns' as root."
-    echo "cron the script to run every minute or so for updates."
+#-- preload part
+
+ytpreload="/etc/YTpreload.txt" 
+workFile=$(mktemp)
+dbFile="/etc/pihole/pihole-FTL.db"
+
+if [ ! -f $ytpreload ]; then
+	echo "preload done" > $ytpreload
+    touch $ytHosts  
+	
+#fill ythosts file with contents of pihole db (slower but more hits)
+cp $ytHosts $workFile
+sqlite3 $dbFile "SELECT domain FROM queries WHERE domain LIKE '%sn-%.googlevideo.com' AND NOT domain LIKE '%--%';" \
+    | awk -v fIP=$forceIP '{ print fIP, $1 }' >> $workFile
+
+sort -u $workFile -o $workFile
+
+if ! cmp $workFile $ytHosts; then
+    echo "Previous number of hosts: " $(wc -l $ytHosts | awk '{ print$1 }')
+    mv $workFile $ytHosts
+    chmod 644 $ytHosts
+    /usr/local/bin/pihole restartdns reload-lists
+	/usr/local/bin/pihole restartdns reload
+else
+    rm -f $workFile
+    echo "No new domains found."
 fi
- 
+
+echo "Total number of entries: " $(wc -l $ytHosts | awk '{ print $1 }')	
+	
+fi
+#--- end preload
+
+#-- regular update [in memory]
+
 ytEntries=$(wc -l $ytHosts)
 
-#changed regex
-for i in $(zgrep -e "r\d(\.sn|---sn).*\.googlevideo\.com" $piLogs | awk '{ print $6 }')
+for i in $(zgrep -e "r\d\.sn.*\.googlevideo\.com" $piLogs | awk '{ print $6 }')
 do
    if [ $(grep -c "$i" $ytHosts) == 0 ]; then 
       # Add line to ytHosts
@@ -53,8 +78,8 @@ done
  
 if [ "$ytEntries" != "$(wc -l $ytHosts)" ]; then
     /usr/local/bin/pihole restartdns reload-lists
-	   /usr/local/bin/pihole restartdns reload
+	/usr/local/bin/pihole restartdns reload
 #	 logger "youtube.update.sh: File updated to $(wc -l $ytHosts)" # uncomment if needed
 fi
- 
+
 exit
