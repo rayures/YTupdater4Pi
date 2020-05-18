@@ -43,7 +43,7 @@ if [ ! -f $ytpreload ]; then
 	
 #fill ythosts file with contents of pihole db (slower but more hits)
 cp $ytHosts $workFile
-sqlite3 $dbFile "SELECT domain FROM queries WHERE domain LIKE '%sn-%.googlevideo.com' AND NOT domain LIKE '%--%';" \
+sqlite3 $dbFile "SELECT domain FROM queries WHERE domain LIKE '%sn-%.g%.com' AND NOT domain LIKE '%--%';" \
     | awk -v fIP=$forceIP '{ print fIP, $1 }' >> $workFile
 
 sort -u $workFile -o $workFile
@@ -78,7 +78,7 @@ done
  
 if [ "$ytEntries" != "$(wc -l $ytHosts)" ]; then
     /usr/local/bin/pihole restartdns reload-lists
-	/usr/local/bin/pihole restartdns reload
+    /usr/local/bin/pihole restartdns reload
 #	 logger "youtube.update.sh: File updated to $(wc -l $ytHosts)" # uncomment if needed
 fi
 
